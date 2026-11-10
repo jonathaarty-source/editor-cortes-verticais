@@ -166,6 +166,9 @@ def editar(src, palavras, saida, base_vf, manchete=None, y_leg=1250, y_box=330, 
     # cx_turnos: [(t0, t1, cx)] no tempo do src (enquadra.turnos): a janela 9:16 segue quem fala; troca = corte seco
     dur = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src], capture_output=True, text=True).stdout.strip() or 0)
     fim = min(fim or dur, dur)
+    # marca e card vêm pelo nome: o arquivo mora na pasta de assets do cliente
+    if card and not os.path.isabs(card): card = os.path.join(ASSETS, card)
+    if tag and not os.path.isabs(tag): tag = os.path.join(ASSETS, tag)
     pal = [p for p in palavras if inicio <= p[0] and p[1] <= fim + 0.05]  # palavra que passa do fim não entra pela metade
     trechos = [[max(t[0], inicio), t[1]] for t in falas(pal, fim, junta=junta)]  # a folga antes da 1ª palavra não derruba o trecho
     total = sum(b - a for a, b in trechos)
@@ -236,8 +239,6 @@ def editar(src, palavras, saida, base_vf, manchete=None, y_leg=1250, y_box=330, 
         vf += f",drawtext=fontfile='{sf}':text='{serif}':fontcolor=white:fontsize=58:x=80:y=380:shadowcolor=black@0.6:shadowx=3:shadowy=3:enable='lt(t,3.2)':alpha='if(lt(t,0.3),t/0.3,if(gt(t,2.9),(3.2-t)/0.3,1))'"
     vf += f",subtitles='{ass.replace(chr(92), '/').replace(':', chr(92) + ':')}':fontsdir='{FONTES_DIR}'"
     # respiro: a última imagem segura parada enquanto o som abaixa
-    if card and not os.path.isabs(card): card = os.path.join(ASSETS, card)
-    if tag and not os.path.isabs(tag): tag = os.path.join(ASSETS, tag)
     if not card: card_dur = 0.25
     vf += f",tpad=stop_mode=clone:stop_duration={congela},fps=30,settb=1/30,format=yuv420p" + ('[vmain];' if card else '[vo];')
     ins = ['-i', src] + (['-loop', '1', '-framerate', '30', '-t', f'{card_dur + 0.3:.2f}', '-i', card] if card else [])
