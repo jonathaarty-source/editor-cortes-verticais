@@ -1,0 +1,80 @@
+name: Render
+
+# "teste": monta um vídeo de prova (fala sintética + imagem de teste) para conferir que o editor funciona no servidor.
+# "fila": pega os pedidos de um repositório privado (o cofre), renderiza e devolve o vídeo pronto para lá.
+# Nada do cofre aparece neste registro: a saída dos pedidos vai para um arquivo que só o cofre recebe.
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: 'teste ou fila'
+        default: 'teste'
+  schedule:
+    - cron: '7,37 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      MODO: ${{ github.event.inputs.modo || 'fila' }}
+      COFRE_REPO: ${{ secrets.COFRE_REPO }}
+      COFRE_TOKEN: ${{ secrets.COFRE_TOKEN }}
+      EDITOR_THREADS: '4'
+    steps:
+      - name: Tem trabalho?
+        id: tem
+        run: |
+          if [ "$MODO" = "teste" ]; then echo "ir=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if [ -z "$COFRE_TOKEN" ] || [ -z "$COFRE_REPO" ]; then echo "cofre não configurado"; echo "ir=0" >> "$GITHUB_OUTPUT"; exit 0; fi
+          N=$(curl -fsS -H "Authorization: Bearer $COFRE_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$COFRE_REPO/contents/video/fila" 2>/dev/null | grep -c '"name": *"[^"]*\.json"' || true)
+          echo "pedidos na fila: ${N:-0}"
+          if [ "${N:-0}" -gt 0 ]; then echo "ir=1" >> "$GITHUB_OUTPUT"; else echo "ir=0" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v4
+        if: steps.tem.outputs.ir == '1'
+      - uses: actions/setup-python@v5
+        if: steps.tem.outputs.ir == '1'
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Modelos (cache)
+        if: steps.tem.outputs.ir == '1'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.config/Ultralytics
+            editor/modelos
+          key: modelos-2
+      - name: Ferramentas
+        if: steps.tem.outputs.ir == '1'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu-core > /dev/null
+          pip install --quiet -r requirements.txt
+          if [ "$MODO" != "teste" ]; then pip install --quiet --extra-index-url https://download.pytorch.org/whl/cpu -r requirements-ia.txt; fi
+      - name: Vídeo de prova
+        if: steps.tem.outputs.ir == '1' && env.MODO == 'teste'
+        run: |
+          bash teste/gerar.sh
+          python editor/rodar.py teste/pedido.json saida
+          ffprobe -v error -show_entries stream=codec_name,width,height:format=duration -of csv=p=0 saida/prova.mp4
+      - uses: actions/upload-artifact@v4
+        if: steps.tem.outputs.ir == '1' && env.MODO == 'teste'
+        with:
+          name: prova
+          path: |
+            saida/prova.mp4
+            saida/prova.ass
+            saida/prova.json
+          retention-days: 3
+      - name: Fila do cofre
+        if: steps.tem.outputs.ir == '1' && env.MODO != 'teste'
+        run: bash nuvem/fila.sh

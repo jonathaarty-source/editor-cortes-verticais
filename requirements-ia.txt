@@ -1,0 +1,6 @@
+torch
+torchaudio
+ultralytics
+speechbrain
+librosa
+scikit-learn

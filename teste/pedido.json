@@ -1,0 +1,8 @@
+{
+ "id": "prova",
+ "fonte": {"arquivo": "saida/fonte_prova.mp4"},
+ "saida": "prova.mp4",
+ "manchete": "VÍDEO DE PROVA|FEITO NO SERVIDOR",
+ "modelos": ["small"],
+ "pause": true
+}
