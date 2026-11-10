@@ -3,6 +3,7 @@ uso: python rodar.py pedido.json pasta_de_saida
 
 pedido.json (tudo opcional menos a fonte):
   fonte        {"arquivo": "video.mp4"}  ou  {"url": "...", "ini": 120, "fim": 200}  (segundos do vídeo original)
+               ou  {"release": "etiqueta", "nome": "arquivo.mp4"}  (trecho guardado numa release do cofre)
   saida        nome do arquivo final (padrão: <id>.mp4)
   inicio, fim  onde o corte começa e termina DENTRO do trecho baixado
   manchete     "LINHA 1|LINHA 2" (some depois de 3 s)
@@ -42,6 +43,10 @@ def fonte(ped, pasta):
     if f.get('arquivo'): return f['arquivo']
     out = os.path.join(pasta, 'fonte.mp4')
     if os.path.exists(out): return out
+    if f.get('release'):   # trecho bruto guardado numa release do cofre (o YouTube barra download vindo de servidor)
+        r = subprocess.run(['gh', 'release', 'download', f['release'], '--repo', os.environ['COFRE_REPO'], '-p', f['nome'], '-O', out], capture_output=True, text=True)
+        if r.returncode or not os.path.exists(out): raise RuntimeError('não baixou a fonte do cofre: ' + r.stderr[-400:])
+        return out
     cmd = [sys.executable, '-m', 'yt_dlp', '-q', '--no-warnings', '-f', 'bv*[height<=1080]+ba/b[height<=1080]', '--merge-output-format', 'mp4', '-o', out]
     if 'ini' in f and 'fim' in f: cmd += ['--download-sections', f"*{f['ini']}-{f['fim']}", '--force-keyframes-at-cuts']
     r = subprocess.run(cmd + [f['url']], capture_output=True, text=True)
