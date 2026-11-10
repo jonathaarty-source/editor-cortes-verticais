@@ -11,6 +11,8 @@ TOKEN = os.environ.get('TELEGRAM_TOKEN', '').strip()
 REPO, CT = os.environ.get('COFRE_REPO', '').strip(), os.environ.get('COFRE_TOKEN', '').strip()
 PLANTAO = int(sys.argv[1]) if len(sys.argv) > 1 else 270
 COFRE = 'cofre'; TG = os.path.join(COFRE, 'telegram')
+import re
+SAUDACAO = re.compile(r'^\W*(oi+|ol[aá]|opa|e a[ií]|eai|bom dia|boa tarde|boa noite|teste|testando|al[oô]|jarvis|t[aá] a[ií]|tudo bem|blz|beleza)[\s\W]*(jarvis)?[\s\W]*$', re.I)
 
 
 def api(metodo, **dados):
@@ -68,6 +70,9 @@ def main():
             if chat != dono: continue
             if not texto or texto == '/start':
                 falar(chat, 'Às ordens, senhor. Escreva o pedido aqui que eu passo para a empresa.'); continue
+            # saudação ou teste não vira pedido: a empresa inteira levava ~11 min de nuvem para responder um "oi"
+            if SAUDACAO.match(texto):
+                falar(chat, 'Estou aqui, senhor. Diga o que o senhor precisa (um vídeo, uma legenda, uma lista de leads, um plano) e eu passo para a empresa.'); continue
             json.dump({'id': x['update_id'], 'texto': texto, 'quando': m.get('date')}, open(os.path.join(TG, 'fila', f"{x['update_id']}.json"), 'w', encoding='utf-8'), ensure_ascii=False)
             falar(chat, 'Recebi, senhor. A empresa está trabalhando e eu respondo aqui quando terminar.'); recebidas += 1
         if prox: api('getUpdates', offset=prox, timeout=0)   # confirma: o Telegram não manda de novo
