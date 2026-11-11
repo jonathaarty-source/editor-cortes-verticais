@@ -9,7 +9,7 @@ INICIO = time.time()
 
 def bateria():
     try:
-        out = subprocess.run(['termux-battery-status'], capture_output=True, text=True, timeout=3)
+        out = subprocess.run(['termux-battery-status'], capture_output=True, text=True, timeout=8)
         return json.loads(out.stdout).get('percentage')
     except Exception:
         try:
