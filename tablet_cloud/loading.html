@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#171326,#1c1930,#231a33);color:#cfc9e6;
+  font-family:-apple-system,sans-serif;font-size:14px}
+</style></head>
+<body>
+Subindo a nuvem do Jarvis…
+<script>
+function tenta(){
+  fetch('http://127.0.0.1:8088/status.json', {cache:'no-store'})
+    .then(function(){ location.replace('http://127.0.0.1:8088/'); })
+    .catch(function(){ setTimeout(tenta, 800); });
+}
+tenta();
+</script>
+</body></html>
