@@ -37,6 +37,29 @@ def guardar(msg):
         time.sleep(4)
 
 
+def ouvir(m):
+    """Áudio/voz do Telegram vira texto (faster-whisper, instalado só quando chega o primeiro áudio). Devolve '' se não deu."""
+    v = m.get('voice') or m.get('audio') or m.get('video_note')
+    if not v: return ''
+    try:
+        info = api('getFile', file_id=v['file_id'])
+        caminho = (info.get('result') or {}).get('file_path')
+        if not caminho: return ''
+        ogg = '/tmp/tg_audio.oga'; wav = '/tmp/tg_audio.wav'
+        urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{TOKEN}/{caminho}', ogg)
+        subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', ogg, '-ar', '16000', '-ac', '1', wav], check=True)
+        try: from faster_whisper import WhisperModel
+        except ImportError:
+            subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', 'faster-whisper'], check=True)
+            from faster_whisper import WhisperModel
+        mod = WhisperModel('small', device='cpu', compute_type='int8')
+        segs, _ = mod.transcribe(wav, language='pt', vad_filter=True)
+        return ' '.join(x.text.strip() for x in segs).strip()
+    except Exception as e:
+        print('áudio não transcrito:', type(e).__name__)   # nunca mostrar o endereço: ele leva o token
+        return ''
+
+
 def falar(chat, texto):
     for i in range(0, max(1, len(texto)), 3900): api('sendMessage', chat_id=chat, text=texto[i:i + 3900] or '(vazio)')
 
@@ -60,10 +83,18 @@ def main():
         # 2) mensagens novas (espera longa de 25 s: quase na hora, sem ficar martelando)
         espera = 25 if fim - time.time() > 30 else 0
         u = api('getUpdates', timeout=espera, **({'offset': prox} if prox else {}))
+        if not u.get('ok'): time.sleep(8); u = {'result': []}
         for x in (u.get('result') or []):
             prox = x['update_id'] + 1
             m = x.get('message') or {}; texto = (m.get('text') or m.get('caption') or '').strip(); chat = str((m.get('chat') or {}).get('id', ''))
             if not chat: continue
+            eh_audio = bool(m.get('voice') or m.get('audio') or m.get('video_note'))
+            if eh_audio and not texto and chat == dono:
+                falar(chat, 'Ouvindo o seu áudio, senhor.')
+                texto = ouvir(m)
+                if not texto:
+                    falar(chat, 'Recebi o áudio, senhor, mas não consegui entender. Pode escrever ou mandar de novo?'); continue
+                falar(chat, 'Entendi: ' + texto[:300])
             if not dono:
                 dono = chat; open(dono_arq, 'w').write(dono)
                 falar(chat, 'Senhor, registrei este Telegram como o do dono. A partir de agora só obedeço a esta conversa.')
