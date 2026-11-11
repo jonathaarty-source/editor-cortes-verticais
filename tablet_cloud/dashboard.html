@@ -136,7 +136,8 @@
         <div class="row"><span><span class="dot" style="background:var(--ok)"></span>PC do escritório</span><span class="muted" id="v-pc">verificando…</span></div>
         <div class="row"><span><span class="dot" style="background:var(--ok)"></span>Python · Git</span><span class="muted" id="v-ver">—</span></div>
       </div>
-      <a class="cta primary" href="#" onclick="location.reload();return false;">Atualizar</a>
+      <a class="cta primary" href="#" id="btn-jarvis" onclick="falarComJarvis();return false;">🎙️ Falar com o Jarvis</a>
+      <a class="cta" href="#" onclick="location.reload();return false;">Atualizar</a>
     </div>
   </div>
 
@@ -196,6 +197,17 @@ async function carregar(){
     }catch(e){}
   }
   document.getElementById('v-pc').textContent = 'desligado';
+}
+async function falarComJarvis(){
+  const btn = document.getElementById('btn-jarvis');
+  const original = btn.textContent;
+  btn.textContent = '🎙️ Ouvindo... fale agora';
+  try{
+    await fetch('/oi_jarvis', {method:'POST'});
+    setTimeout(()=>{ btn.textContent = original; }, 9000);
+  }catch(e){
+    btn.textContent = original;
+  }
 }
 carregar(); setInterval(carregar, 15000);
 </script>

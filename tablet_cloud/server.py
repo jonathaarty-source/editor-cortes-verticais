@@ -50,6 +50,19 @@ def inspetor_vivo():
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    def do_POST(self):
+        if self.path == '/oi_jarvis':
+            subprocess.Popen(['sh', os.path.expanduser('~/tablet_cloud/oi_jarvis.sh')])
+            body = b'{"ok":true}'
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        self.send_response(404)
+        self.end_headers()
+
     def do_GET(self):
         if self.path == '/status.json':
             body = json.dumps(status()).encode()
