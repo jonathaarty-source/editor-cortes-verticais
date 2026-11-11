@@ -22,6 +22,14 @@ nohup sh notif_watch.sh > notif.log 2>&1 &
 nohup sh inspetor.sh > /dev/null 2>&1 &
 # A tela inicial já é o painel (Webview Kiosk virou o launcher padrão), não precisa abrir nada.
 
+# EMPRESA JARVIS rodando dentro do proprio tablet (11/11): sem depender do PC ligado nem de rede
+# caseira. A chave do Gemini fica so num arquivo local (.chave_gemini), nunca no git.
+if [ -f ~/empresa_jarvis/server.mjs ] && [ -f ~/empresa_jarvis/.chave_gemini ]; then
+  export PATH=/data/data/com.termux/files/usr/bin:$PATH
+  cd ~/empresa_jarvis
+  GEMINI_API_KEY=$(cat .chave_gemini) nohup node server.mjs > server.log 2>&1 &
+fi
+
 # liga a escuta continua ("Oi Jarvis") sozinha, depois que o Jarvis Mao tiver tempo de subir
 sleep 20
 curl -s -m 8 -X POST http://127.0.0.1:8099/ -d '{"action":"hotword_on"}' >> oi_jarvis.log 2>&1
