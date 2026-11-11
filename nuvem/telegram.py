@@ -60,6 +60,40 @@ def ouvir(m):
         return ''
 
 
+def despertar(agora=None):
+    """DESPERTADOR (11/11): o agendamento do GitHub atrasa horas no cofre. Este plantão roda sem parar, então ele mesmo
+    acorda cada sala na hora: lê cofre/despertador/agenda.json ([{"slot": "...", "hora": "06:00"}], hora de Fortaleza) e,
+    se passou 3 min da hora e a sala ainda não marcou despertador/feito/<dia>_<slot>, grava despertador/pedir/<dia>_<slot>.json
+    (o cofre dispara a sala por esse arquivo). Só olha as últimas 2 horas: sala muito velha não é ressuscitada."""
+    try:
+        base = os.path.join(COFRE, 'despertador')
+        agenda = json.load(open(os.path.join(base, 'agenda.json'), encoding='utf-8'))
+        t = time.gmtime((agora or time.time()) - 3 * 3600)   # Fortaleza = UTC-3, sem horário de verão
+        dia = time.strftime('%Y-%m-%d', t); minuto = t.tm_hour * 60 + t.tm_min; pediu = 0
+        for a in agenda:
+            h, m = str(a['hora']).split(':'); alvo = int(h) * 60 + int(m); slot = str(a['slot'])
+            if not (alvo + 3 <= minuto <= alvo + 120): continue
+            if os.path.exists(os.path.join(base, 'feito', f'{dia}_{slot}')): continue
+            arq = os.path.join(base, 'pedir', f'{dia}_{slot}.json')
+            if os.path.exists(arq): continue
+            os.makedirs(os.path.dirname(arq), exist_ok=True)
+            json.dump({'slot': slot, 'dia': dia, 'pedido_em_utc': time.strftime('%H:%M', time.gmtime(agora or time.time()))}, open(arq, 'w'))
+            pediu += 1
+        if pediu:
+            git('add', 'despertador')
+            git('-c', 'user.name=despertador', '-c', 'user.email=despertador@users.noreply.github.com', 'commit', '-q', '-m', 'despertador: sala na hora')
+            for _ in range(3):
+                git('pull', '-q', '--rebase')
+                if git('push', '-q').returncode == 0: break
+                time.sleep(4)
+            print(f'despertador: {pediu} sala(s) acordada(s)')
+        return pediu
+    except FileNotFoundError:
+        return 0
+    except Exception as e:
+        print('despertador falhou:', type(e).__name__); return 0
+
+
 def falar(chat, texto):
     for i in range(0, max(1, len(texto)), 3900): api('sendMessage', chat_id=chat, text=texto[i:i + 3900] or '(vazio)')
 
@@ -75,6 +109,7 @@ def main():
     while True:
         # 1) respostas que a empresa deixou prontas
         git('pull', '-q', '--rebase')
+        despertar()
         for f in sorted(os.listdir(os.path.join(TG, 'respostas'))):
             if not f.endswith('.md') or not dono: continue
             falar(dono, open(os.path.join(TG, 'respostas', f), encoding='utf-8').read().strip())

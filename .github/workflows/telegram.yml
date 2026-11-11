@@ -1,7 +1,10 @@
 name: Telegram
 
-# Plantão do bot: a cada 5 minutos fica ~4,5 min ouvindo o Telegram (espera longa), grava os pedidos no cofre e
-# manda as respostas prontas. Nada do conteúdo aparece neste registro.
+# Plantão do bot: fica ouvindo o Telegram (espera longa), grava os pedidos no cofre e manda as respostas prontas.
+# Nada do conteúdo aparece neste registro.
+# 11/11: o agendamento do GitHub deixava buracos de 6 a 8 h (o bot só respondia horas depois). Agora cada plantão, ao
+# terminar, CHAMA O PRÓXIMO (corrente contínua); o agendamento fica só para religar a corrente se ela cair.
+# O mesmo plantão é o despertador das salas do cofre (nuvem/telegram.py, despertar). Para parar: crie nuvem/PARAR_PLANTAO.
 on:
   schedule:
     - cron: '*/5 * * * *'
@@ -9,10 +12,11 @@ on:
     inputs:
       plantao:
         description: 'segundos de plantão'
-        default: '270'
+        default: '1500'
 
 permissions:
   contents: read
+  actions: write # só para chamar o próximo plantão
 
 concurrency:
   group: telegram
@@ -21,7 +25,7 @@ concurrency:
 jobs:
   plantao:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 32
     env:
       TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
       COFRE_REPO: ${{ secrets.COFRE_REPO }}
@@ -29,4 +33,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Plantão
-        run: python3 nuvem/telegram.py "${{ github.event.inputs.plantao || '270' }}"
+        run: python3 nuvem/telegram.py "${{ github.event.inputs.plantao || '1500' }}"
+      - name: Chamar o próximo plantão
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f nuvem/PARAR_PLANTAO ]; then echo "corrente parada de propósito"; exit 0; fi
+          # plantão que falhou espera antes de chamar o próximo (não vira laço rápido)
+          if [ "${{ job.status }}" != "success" ]; then sleep 120; fi
+          gh workflow run telegram.yml -R "${{ github.repository }}" -f plantao=1500
