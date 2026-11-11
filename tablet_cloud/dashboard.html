@@ -186,7 +186,7 @@ async function carregar(){
     document.getElementById('j-inspetor').textContent = d.inspetor_ativo ? 'vigiando' : 'parado';
     document.getElementById('dot-inspetor').style.background = d.inspetor_ativo ? 'var(--ok)' : 'var(--bad)';
   }catch(e){}
-  const ipsPC = (window.IP_PC ? [window.IP_PC] : []);
+  const ipsPC = ['192.168.0.8'];
   for (const ip of ipsPC){
     try{
       const c = new AbortController(); setTimeout(()=>c.abort(), 1200);
