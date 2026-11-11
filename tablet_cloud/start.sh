@@ -5,5 +5,5 @@ cd ~/tablet_cloud
 curl -sL -o server.py https://raw.githubusercontent.com/jonathaarty-source/editor-cortes-verticais/main/tablet_cloud/server.py
 curl -sL -o dashboard.html https://raw.githubusercontent.com/jonathaarty-source/editor-cortes-verticais/main/tablet_cloud/dashboard.html
 nohup python server.py > server.log 2>&1 &
-sleep 3
-am start -a android.intent.action.VIEW -d "http://127.0.0.1:8088/" -n com.android.chrome/com.google.android.apps.chrome.Main
+nohup sh notif_watch.sh > notif.log 2>&1 &
+# A tela inicial já é o painel (Webview Kiosk virou o launcher padrão), não precisa abrir nada.
