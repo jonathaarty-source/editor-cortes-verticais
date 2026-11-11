@@ -131,6 +131,7 @@
     <div class="card wide">
       <div class="eyebrow">Rodando neste tablet <span>⚙</span></div>
       <div class="list">
+        <div class="row"><span><span class="dot" id="dot-inspetor" style="background:var(--warn)"></span>Inspetor (auto-conserto)</span><span class="muted" id="j-inspetor">—</span></div>
         <div class="row"><span><span class="dot" style="background:var(--warn)"></span>Plantão do Telegram</span><span class="muted" id="j-telegram">—</span></div>
         <div class="row"><span><span class="dot" style="background:var(--ok)"></span>PC do escritório</span><span class="muted" id="v-pc">verificando…</span></div>
         <div class="row"><span><span class="dot" style="background:var(--ok)"></span>Python · Git</span><span class="muted" id="v-ver">—</span></div>
@@ -182,6 +183,8 @@ async function carregar(){
     document.getElementById('v-disco-pct').textContent = (d.disco_livre_pct!=null ? d.disco_livre_pct+'% livre' : '—');
     document.getElementById('v-ver').textContent = (d.python||'?') + ' · ' + (d.git||'?');
     document.getElementById('j-telegram').textContent = d.telegram_ativo ? 'rodando' : 'aguardando segredo';
+    document.getElementById('j-inspetor').textContent = d.inspetor_ativo ? 'vigiando' : 'parado';
+    document.getElementById('dot-inspetor').style.background = d.inspetor_ativo ? 'var(--ok)' : 'var(--bad)';
   }catch(e){}
   const ipsPC = (window.IP_PC ? [window.IP_PC] : []);
   for (const ip of ipsPC){

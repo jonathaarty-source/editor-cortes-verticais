@@ -37,7 +37,16 @@ def status():
         'python': subprocess.run(['python', '--version'], capture_output=True, text=True).stdout.strip() or '—',
         'git': subprocess.run(['git', '--version'], capture_output=True, text=True).stdout.strip() or '—',
         'telegram_ativo': os.path.exists(os.path.expanduser('~/tablet_cloud/telegram_ativo.flag')),
+        'inspetor_ativo': inspetor_vivo(),
     }
+
+
+def inspetor_vivo():
+    f = os.path.expanduser('~/tablet_cloud/inspetor_ok.flag')
+    try:
+        return (time.time() - os.path.getmtime(f)) < 180
+    except Exception:
+        return False
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):

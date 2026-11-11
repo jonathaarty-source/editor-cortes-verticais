@@ -5,9 +5,11 @@ cd ~/tablet_cloud
 curl -sL -o server.py https://raw.githubusercontent.com/jonathaarty-source/editor-cortes-verticais/main/tablet_cloud/server.py
 curl -sL -o dashboard.html https://raw.githubusercontent.com/jonathaarty-source/editor-cortes-verticais/main/tablet_cloud/dashboard.html
 curl -sL -o notif_watch.sh https://raw.githubusercontent.com/jonathaarty-source/editor-cortes-verticais/main/tablet_cloud/notif_watch.sh
-chmod +x notif_watch.sh
+curl -sL -o inspetor.sh https://raw.githubusercontent.com/jonathaarty-source/editor-cortes-verticais/main/tablet_cloud/inspetor.sh
+chmod +x notif_watch.sh inspetor.sh
 nohup python server.py > server.log 2>&1 &
 nohup sh notif_watch.sh > notif.log 2>&1 &
+nohup sh inspetor.sh > /dev/null 2>&1 &
 # A tela inicial já é o painel (Webview Kiosk virou o launcher padrão), não precisa abrir nada.
 
 # OBS: o Wi-Fi-sempre-ligado (deviceidle/wifi_sleep_policy) NÃO pode ser feito aqui.
