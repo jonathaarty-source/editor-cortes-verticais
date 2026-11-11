@@ -30,6 +30,9 @@ if [ -f ~/empresa_jarvis/server.mjs ] && [ -f ~/empresa_jarvis/.chave_gemini ]; 
   GEMINI_API_KEY=$(cat .chave_gemini) nohup node server.mjs > server.log 2>&1 &
 fi
 
+# Tor (11/11): proxy SOCKS em 127.0.0.1:9050, pra navegacao anonima quando precisar.
+command -v tor >/dev/null 2>&1 && nohup tor > ~/tor.log 2>&1 &
+
 # liga a escuta continua ("Oi Jarvis") sozinha, depois que o Jarvis Mao tiver tempo de subir
 sleep 20
 curl -s -m 8 -X POST http://127.0.0.1:8099/ -d '{"action":"hotword_on"}' >> oi_jarvis.log 2>&1
