@@ -12,6 +12,10 @@ nohup sh notif_watch.sh > notif.log 2>&1 &
 nohup sh inspetor.sh > /dev/null 2>&1 &
 # A tela inicial já é o painel (Webview Kiosk virou o launcher padrão), não precisa abrir nada.
 
+# liga a escuta continua ("Oi Jarvis") sozinha, depois que o Jarvis Mao tiver tempo de subir
+sleep 20
+curl -s -m 8 -X POST http://127.0.0.1:8099/ -d '{"action":"hotword_on"}' >> oi_jarvis.log 2>&1
+
 # OBS: o Wi-Fi-sempre-ligado (deviceidle/wifi_sleep_policy) NÃO pode ser feito aqui.
 # Termux roda como app comum e essas chamadas exigem android.permission.DEVICE_POWER,
 # que só o usuário "shell" do adb (ou root) possui. Sem isso, reaplicar exige

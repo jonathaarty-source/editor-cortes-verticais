@@ -137,6 +137,8 @@
         <div class="row"><span><span class="dot" style="background:var(--ok)"></span>Python · Git</span><span class="muted" id="v-ver">—</span></div>
       </div>
       <a class="cta primary" href="#" id="btn-jarvis" onclick="falarComJarvis();return false;">🎙️ Falar com o Jarvis</a>
+      <a class="cta" href="#" id="btn-hotword" onclick="alternarHotword();return false;" style="margin-top:10px">👂 Escuta contínua: verificando…</a>
+      <a class="cta" href="#" id="btn-analisar" onclick="analisarCamera();return false;" style="margin-top:10px">📷 Terminei de mostrar, analisar agora</a>
       <div style="display:flex;gap:8px;margin-top:10px">
         <a class="cta" href="#" style="flex:1;font-size:18px" onclick="volume(-1);return false;">🔉 −</a>
         <a class="cta" href="#" style="flex:1;font-size:18px" onclick="volume(1);return false;">🔊 +</a>
@@ -278,6 +280,36 @@ async function falarComJarvis(){
     btn.textContent = original;
   }
 }
+async function alternarHotword(){
+  const btn = document.getElementById('btn-hotword');
+  try{
+    const st = await (await fetch('http://127.0.0.1:8099/', {method:'POST', body: JSON.stringify({action:'hotword_status'})})).json();
+    const acao = st.ligado ? 'hotword_off' : 'hotword_on';
+    await fetch('http://127.0.0.1:8099/', {method:'POST', body: JSON.stringify({action: acao})});
+    await atualizarStatusHotword();
+  }catch(e){
+    btn.textContent = '👂 Escuta contínua: erro, tenta de novo';
+  }
+}
+async function atualizarStatusHotword(){
+  const btn = document.getElementById('btn-hotword');
+  try{
+    const st = await (await fetch('http://127.0.0.1:8099/', {method:'POST', body: JSON.stringify({action:'hotword_status'})})).json();
+    btn.textContent = st.ligado ? '👂 Escuta contínua: ligada (tocar pra desligar)' : '👂 Escuta contínua: desligada (tocar pra ligar)';
+  }catch(e){
+    btn.textContent = '👂 Escuta contínua: não consegui checar';
+  }
+}
+async function analisarCamera(){
+  const btn = document.getElementById('btn-analisar');
+  const original = btn.textContent;
+  btn.textContent = '📷 Analisando...';
+  try{
+    await fetch('http://127.0.0.1:8099/', {method:'POST', body: JSON.stringify({action:'camera_analisar_agora', texto:'O que você viu nessas imagens? Descreva o objeto considerando todos os ângulos mostrados.'})});
+  }catch(e){}
+  setTimeout(()=>{ btn.textContent = original; }, 3000);
+}
+atualizarStatusHotword();
 carregar(); setInterval(carregar, 15000);
 </script>
 </body>
