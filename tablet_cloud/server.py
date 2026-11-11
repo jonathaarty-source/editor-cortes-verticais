@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Painel da Nuvem do Jarvis no tablet. v1: roda local, sem segredo nenhum.
-Uso: python server.py   (abre em http://127.0.0.1:8088 e http://<ip-do-tablet>:8088)"""
+"""Painel da Nuvem do Jarvis no tablet. v2: visual glass estilo wellness, dados reais.
+Uso: python server.py   (abre em http://127.0.0.1:8088)"""
 import http.server, json, os, shutil, subprocess, time
 
 PORTA = 8088
@@ -13,8 +13,8 @@ def bateria():
         return json.loads(out.stdout).get('percentage')
     except Exception:
         try:
-            for linha in open('/sys/class/power_supply/battery/capacity'):
-                return int(linha.strip())
+            with open('/sys/class/power_supply/battery/capacity') as f:
+                return int(f.read().strip())
         except Exception:
             return None
 
@@ -23,10 +23,17 @@ def status():
     disco = shutil.disk_usage(os.path.expanduser('~'))
     uptime_s = int(time.time() - INICIO)
     h, m = divmod(uptime_s // 60, 60)
+    livre_pct = round(disco.free / disco.total * 100)
+    bat = bateria()
+    # pontuação composta simples: espaço livre + bateria + rede sempre ligada (fixo 100 aqui)
+    partes = [p for p in [livre_pct, bat, 100] if p is not None]
+    saude = round(sum(partes) / len(partes)) if partes else None
     return {
-        'bateria': bateria(),
-        'uptime': f'{h}h{m:02d}m (deste painel)',
-        'disco_livre': f'{disco.free // (1024*1024)} MB livres',
+        'bateria': bat,
+        'uptime': f'{h}h{m:02d}m',
+        'disco_livre_mb': disco.free // (1024 * 1024),
+        'disco_livre_pct': livre_pct,
+        'saude': saude,
         'python': subprocess.run(['python', '--version'], capture_output=True, text=True).stdout.strip() or '—',
         'git': subprocess.run(['git', '--version'], capture_output=True, text=True).stdout.strip() or '—',
         'telegram_ativo': os.path.exists(os.path.expanduser('~/tablet_cloud/telegram_ativo.flag')),

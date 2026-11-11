@@ -2,106 +2,184 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nuvem do Jarvis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Nuvem</title>
 <style>
   :root{
-    --bg1:#e9edf5; --bg2:#dfe4ee;
-    --glass:rgba(255,255,255,.55); --glass-border:rgba(255,255,255,.7);
-    --txt:#1c1f26; --sub:#6b7180;
-    --ok:#30c46a; --warn:#ffb23f; --bad:#ff5a5f; --blue:#3b82f6;
+    --txt:#f3f1fa; --sub:#b9b4cc;
+    --glass:rgba(255,255,255,.08); --glass-brd:rgba(255,255,255,.14);
+    --glass2:rgba(255,255,255,.05);
+    --ok:#52e0a3; --warn:#ffcf6b; --bad:#ff7a8a; --accent:#c7b6ff;
   }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg1:#0e1016; --bg2:#15171f; --glass:rgba(255,255,255,.06); --glass-border:rgba(255,255,255,.12);
-           --txt:#f1f2f6; --sub:#9196a3; }
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%}
   body{
-    margin:0; color:var(--txt);
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,sans-serif;
+    margin:0; color:var(--txt); overflow-x:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Roboto,sans-serif;
     background:
-      radial-gradient(900px 500px at 15% -10%, rgba(120,150,255,.25), transparent),
-      radial-gradient(700px 500px at 110% 10%, rgba(255,160,200,.18), transparent),
-      linear-gradient(180deg, var(--bg1), var(--bg2));
-    padding:env(safe-area-inset-top,22px) 14px 30px;
+      radial-gradient(1000px 650px at -5% -15%, #7c6bd8 0%, transparent 55%),
+      radial-gradient(900px 600px at 115% 0%, #e79ac9 0%, transparent 50%),
+      radial-gradient(900px 700px at 50% 120%, #4f7fe0 0%, transparent 55%),
+      linear-gradient(160deg,#171326 0%, #1c1930 45%, #231a33 100%);
+    background-attachment:fixed;
+    padding:env(safe-area-inset-top,20px) 16px 36px;
     min-height:100%;
   }
-  .top{padding:6px 4px 14px}
-  h1{font-size:19px;font-weight:650;margin:0 0 2px;letter-spacing:-.01em}
-  .sub{color:var(--sub);font-size:12.5px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .brand{display:flex;align-items:center;gap:8px;padding:6px 2px 14px}
+  .brand .mark{width:20px;height:20px;border-radius:7px;background:conic-gradient(from 210deg,var(--accent),#7c6bd8,#e79ac9,var(--accent));box-shadow:0 0 14px rgba(199,182,255,.5)}
+  .brand b{font-size:14.5px;font-weight:650;letter-spacing:-.01em}
+
+  .tabs{display:flex;gap:6px;background:var(--glass2);border:1px solid var(--glass-brd);border-radius:999px;padding:4px;margin-bottom:16px;backdrop-filter:blur(20px)}
+  .tabs span{flex:1;text-align:center;font-size:11.5px;font-weight:600;color:var(--sub);padding:8px 0;border-radius:999px}
+  .tabs span.on{background:rgba(255,255,255,.14);color:var(--txt)}
+
+  .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:10px}
   .card{
-    background:var(--glass); backdrop-filter:blur(22px) saturate(160%); -webkit-backdrop-filter:blur(22px) saturate(160%);
-    border:1px solid var(--glass-border); border-radius:20px; padding:12px 14px;
-    box-shadow:0 1px 1px rgba(0,0,0,.03), 0 8px 24px rgba(20,20,40,.06);
+    background:var(--glass); backdrop-filter:blur(26px) saturate(150%); -webkit-backdrop-filter:blur(26px) saturate(150%);
+    border:1px solid var(--glass-brd); border-radius:22px; padding:16px;
+    box-shadow:0 10px 30px rgba(10,6,30,.25), inset 0 1px 0 rgba(255,255,255,.08);
+    position:relative; overflow:hidden;
   }
   .card.wide{grid-column:1/-1}
-  .label{color:var(--sub);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
-  .value{font-size:17px;font-weight:650;margin-top:3px;letter-spacing:-.01em}
-  .tag{color:var(--sub);font-size:11.5px;margin-top:1px}
-  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
-  .ok{background:var(--ok)} .warn{background:var(--warn)} .bad{background:var(--bad)}
-  .row{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-bottom:1px solid var(--glass-border);font-size:13.5px}
-  .row:last-child{border-bottom:none}
-  .btns{display:flex;gap:8px;margin-top:14px}
-  .btn{
-    flex:1; text-align:center; text-decoration:none; color:var(--txt);
-    background:var(--glass); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-    border:1px solid var(--glass-border); padding:11px; border-radius:16px;
-    font-size:13.5px; font-weight:600; letter-spacing:-.01em;
-  }
-  .btn.primary{background:var(--blue); color:#fff; border-color:transparent}
+  .card.tall{grid-row:span 2}
+  .eyebrow{color:var(--sub);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+  .headline{font-size:21px;font-weight:650;line-height:1.22;letter-spacing:-.015em;margin-top:10px}
+  .headline b{font-weight:750}
+  .muted{color:var(--sub);font-size:12px;margin-top:8px}
+
+  .ring-wrap{display:flex;flex-direction:column;align-items:center;margin-top:2px}
+  svg.ring{transform:rotate(-90deg)}
+  .ring-bg{stroke:rgba(255,255,255,.1)}
+  .ring-fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+  .ring-num{font-size:20px;font-weight:700;margin-top:-54px}
+  .ring-lbl{font-size:10px;color:var(--sub);margin-top:2px}
+  .pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--ok);background:rgba(82,224,163,.12);border-radius:999px;padding:3px 9px;margin-top:8px}
+  .pill.warn{color:var(--warn);background:rgba(255,207,107,.12)}
+
+  .wave{width:100%;height:46px;margin-top:6px}
+  .stat-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:2px}
+  .stat-row .big{font-size:19px;font-weight:700}
+
+  .icon{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);margin-bottom:2px}
+  .icon svg{width:18px;height:18px}
+
+  .list .row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
+  .list .row:last-child{border-bottom:none}
+  .dot{width:7px;height:7px;border-radius:50%;margin-right:6px;display:inline-block;vertical-align:1px}
+
+  .bars{display:flex;align-items:flex-end;gap:5px;height:40px;margin-top:8px}
+  .bars i{flex:1;background:linear-gradient(180deg,var(--accent),rgba(199,182,255,.25));border-radius:5px;display:block}
+
+  .cta{display:block;text-align:center;background:rgba(255,255,255,.12);border:1px solid var(--glass-brd);color:var(--txt);text-decoration:none;font-size:12.5px;font-weight:650;padding:10px;border-radius:14px;margin-top:12px}
+  .cta.primary{background:linear-gradient(135deg,#8f7bf0,#c99ce0);border-color:transparent;color:#1b1430}
   .btn:active{transform:scale(.97)}
-  .foot{color:var(--sub);font-size:10.5px;text-align:center;margin-top:16px;opacity:.7}
+  .foot{text-align:center;color:var(--sub);font-size:10px;margin-top:16px;opacity:.6}
 </style>
 </head>
 <body>
-  <div class="top">
-    <h1>Nuvem do Jarvis</h1>
-    <div class="sub" id="relogio">—</div>
+  <div class="brand"><span class="mark"></span><b>Nuvem</b></div>
+
+  <div class="tabs">
+    <span class="on">Visão geral</span><span>Setores</span><span>Rede</span><span>Dispositivo</span>
   </div>
 
   <div class="grid">
+    <div class="card wide" style="grid-column:1/2">
+      <div class="eyebrow">AGORA · <span id="relogio">—</span></div>
+      <div class="headline" id="headline">Carregando…</div>
+      <div class="muted" id="sub-headline">—</div>
+    </div>
+
     <div class="card">
-      <div class="label">Bateria</div>
-      <div class="value" id="v-bateria">—</div>
-      <div class="tag" id="v-uptime">—</div>
+      <div class="eyebrow">Saúde<span>⟳</span></div>
+      <div class="ring-wrap">
+        <svg class="ring" width="86" height="86" viewBox="0 0 86 86">
+          <circle class="ring-bg" cx="43" cy="43" r="36" fill="none" stroke-width="9"/>
+          <circle id="ring-fg" class="ring-fg" cx="43" cy="43" r="36" fill="none" stroke-width="9"
+                  stroke-dasharray="226" stroke-dashoffset="226"/>
+        </svg>
+        <div class="ring-num" id="v-saude">—</div>
+        <div class="ring-lbl">de 100</div>
+      </div>
+      <div class="pill" id="pill-saude">avaliando</div>
     </div>
+
     <div class="card">
-      <div class="label">Rede</div>
-      <div class="value"><span class="dot ok"></span>Sempre ligada</div>
-      <div class="tag">Doze desligado</div>
+      <div class="eyebrow">Rede<span>📶</span></div>
+      <svg class="wave" viewBox="0 0 120 40" preserveAspectRatio="none">
+        <path d="M0,28 C10,10 20,34 30,18 C40,6 50,30 60,16 C70,8 80,26 90,14 C100,6 110,22 120,12"
+              fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+      </svg>
+      <div class="stat-row"><span class="big">Sempre ligada</span></div>
+      <div class="muted">Doze desligado</div>
     </div>
-    <div class="card wide">
-      <div class="label">PC do escritório</div>
-      <div class="value" id="v-pc">verificando…</div>
-      <div class="tag" id="v-pc-tag">—</div>
+
+    <div class="card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="10" y1="6" x2="14" y2="6"/></svg></div>
+      <div class="eyebrow">Bateria</div>
+      <div class="stat-row"><span class="big" id="v-bateria">—</span></div>
+      <div class="bars" id="bars-bateria"></div>
     </div>
+
+    <div class="card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="9" ry="4"/><ellipse cx="12" cy="12" rx="4" ry="9"/></svg></div>
+      <div class="eyebrow">Espaço livre</div>
+      <div class="stat-row"><span class="big" id="v-disco">—</span></div>
+      <div class="muted" id="v-disco-pct">—</div>
+    </div>
+
     <div class="card wide">
-      <div class="label">Rodando neste tablet</div>
-      <div class="row"><span>Plantão do Telegram</span><span class="tag" id="j-telegram">—</span></div>
-      <div class="row"><span>Espaço livre</span><span class="tag" id="v-disco">—</span></div>
-      <div class="row"><span>Python · Git</span><span class="tag" id="v-ver">—</span></div>
+      <div class="eyebrow">Rodando neste tablet <span>⚙</span></div>
+      <div class="list">
+        <div class="row"><span><span class="dot" style="background:var(--warn)"></span>Plantão do Telegram</span><span class="muted" id="j-telegram">—</span></div>
+        <div class="row"><span><span class="dot" style="background:var(--ok)"></span>PC do escritório</span><span class="muted" id="v-pc">verificando…</span></div>
+        <div class="row"><span><span class="dot" style="background:var(--ok)"></span>Python · Git</span><span class="muted" id="v-ver">—</span></div>
+      </div>
+      <a class="cta primary" href="#" onclick="location.reload();return false;">Atualizar</a>
     </div>
   </div>
 
-  <div class="btns">
-    <a class="btn primary" href="#" onclick="location.reload();return false;">Atualizar</a>
-    <a class="btn" id="link-pc" href="#">Painel do PC</a>
-  </div>
-
-  <div class="foot">v1 · roda local no Termux</div>
+  <div class="foot">Nuvem do Jarvis · v2 · roda local no tablet</div>
 
 <script>
+function setRing(pct){
+  const c = 2*Math.PI*36;
+  const el = document.getElementById('ring-fg');
+  el.setAttribute('stroke-dasharray', c.toFixed(1));
+  el.setAttribute('stroke-dashoffset', (c*(1-pct/100)).toFixed(1));
+}
+function bars(pct){
+  const n=10, on=Math.round(pct/100*n);
+  let h='';
+  for(let i=0;i<n;i++){
+    const alt = i<on ? '' : 'opacity:.25';
+    h += `<i style="height:${18+((i%4)*5)}px;${alt}"></i>`;
+  }
+  document.getElementById('bars-bateria').innerHTML = h;
+}
 async function carregar(){
-  document.getElementById('relogio').textContent = new Date().toLocaleString('pt-BR');
+  document.getElementById('relogio').textContent = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   try{
     const r = await fetch('/status.json', {cache:'no-store'});
     const d = await r.json();
-    document.getElementById('v-bateria').textContent = d.bateria ? d.bateria + '%' : '—';
-    document.getElementById('v-uptime').textContent = 'painel ligado há ' + (d.uptime || '—');
-    document.getElementById('v-disco').textContent = d.disco_livre || '—';
+    const saude = d.saude ?? 0;
+    document.getElementById('v-saude').textContent = saude;
+    setRing(saude);
+    const pill = document.getElementById('pill-saude');
+    if(saude>=80){pill.textContent='excelente';pill.className='pill';}
+    else if(saude>=50){pill.textContent='estável';pill.className='pill';}
+    else {pill.textContent='atenção';pill.className='pill warn';}
+
+    document.getElementById('headline').innerHTML = saude>=80
+      ? 'Sua nuvem está <b>redondinha</b>'
+      : (saude>=50 ? 'Sua nuvem está <b>estável</b>' : 'Sua nuvem precisa de <b>atenção</b>');
+    document.getElementById('sub-headline').textContent =
+      `Ligado há ${d.uptime || '—'} · ${d.disco_livre_pct ?? '—'}% de espaço livre`;
+
+    document.getElementById('v-bateria').textContent = d.bateria!=null ? d.bateria+'%' : '—';
+    bars(d.bateria ?? 0);
+    document.getElementById('v-disco').textContent = (d.disco_livre_mb!=null ? Math.round(d.disco_livre_mb/1024*10)/10+' GB' : '—');
+    document.getElementById('v-disco-pct').textContent = (d.disco_livre_pct!=null ? d.disco_livre_pct+'% livre' : '—');
     document.getElementById('v-ver').textContent = (d.python||'?') + ' · ' + (d.git||'?');
     document.getElementById('j-telegram').textContent = d.telegram_ativo ? 'rodando' : 'aguardando segredo';
   }catch(e){}
@@ -110,14 +188,11 @@ async function carregar(){
     try{
       const c = new AbortController(); setTimeout(()=>c.abort(), 1200);
       await fetch('http://'+ip+':4747/', {mode:'no-cors', signal:c.signal});
-      document.getElementById('v-pc').textContent = 'ligado, na mesma rede';
-      document.getElementById('v-pc-tag').textContent = ip+':4747';
-      document.getElementById('link-pc').href = 'http://'+ip+':4747/';
+      document.getElementById('v-pc').textContent = 'ligado';
       return;
     }catch(e){}
   }
-  document.getElementById('v-pc').textContent = 'desligado (ou fora da rede)';
-  document.getElementById('v-pc-tag').textContent = 'rodando sozinho';
+  document.getElementById('v-pc').textContent = 'desligado';
 }
 carregar(); setInterval(carregar, 15000);
 </script>
