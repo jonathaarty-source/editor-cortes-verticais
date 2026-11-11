@@ -10,5 +10,4 @@ pkill -f notif_watch.sh
 sleep 1
 nohup python server.py > server.log 2>&1 &
 nohup sh notif_watch.sh > notif.log 2>&1 &
-disown -a
 echo "reiniciado"
