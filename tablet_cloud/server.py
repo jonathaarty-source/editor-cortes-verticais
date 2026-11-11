@@ -19,6 +19,35 @@ def bateria():
             return None
 
 
+def propriedade(nome):
+    try:
+        return subprocess.run(['getprop', nome], capture_output=True, text=True, timeout=3).stdout.strip()
+    except Exception:
+        return ''
+
+
+def ip_wifi():
+    try:
+        out = subprocess.run(['ip', 'addr', 'show', 'wlan0'], capture_output=True, text=True, timeout=3).stdout
+        for linha in out.splitlines():
+            linha = linha.strip()
+            if linha.startswith('inet '):
+                return linha.split()[1].split('/')[0]
+    except Exception:
+        pass
+    return None
+
+
+def ultimas_linhas_log(nome, n=8):
+    caminho = os.path.expanduser(f'~/tablet_cloud/{nome}')
+    try:
+        with open(caminho, encoding='utf-8', errors='replace') as f:
+            linhas = f.readlines()
+        return [l.strip() for l in linhas[-n:]]
+    except Exception:
+        return []
+
+
 def status():
     disco = shutil.disk_usage(os.path.expanduser('~'))
     uptime_s = int(time.time() - INICIO)
@@ -29,6 +58,20 @@ def status():
     partes = [p for p in [livre_pct, bat, 100] if p is not None]
     saude = round(sum(partes) / len(partes)) if partes else None
     return {
+        'dispositivo': {
+            'modelo': propriedade('ro.product.model') or '—',
+            'android': propriedade('ro.build.version.release') or '—',
+            'disco_total_gb': round(disco.total / (1024**3), 1),
+            'disco_usado_gb': round((disco.total - disco.free) / (1024**3), 1),
+        },
+        'rede_detalhe': {
+            'ip': ip_wifi() or '—',
+        },
+        'logs': {
+            'inspetor': ultimas_linhas_log('inspetor.log'),
+            'oi_jarvis': ultimas_linhas_log('oi_jarvis.log'),
+            'notif': ultimas_linhas_log('notif.log'),
+        },
         'bateria': bat,
         'uptime': f'{h}h{m:02d}m',
         'disco_livre_mb': disco.free // (1024 * 1024),

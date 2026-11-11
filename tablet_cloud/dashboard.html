@@ -80,10 +80,10 @@
   <div class="brand"><span class="mark"></span><b>Nuvem</b></div>
 
   <div class="tabs">
-    <span class="on">Visão geral</span><span>Setores</span><span>Rede</span><span>Dispositivo</span>
+    <span class="on" onclick="mudarAba('geral', this)">Visão geral</span><span onclick="mudarAba('setores', this)">Setores</span><span onclick="mudarAba('rede', this)">Rede</span><span onclick="mudarAba('dispositivo', this)">Dispositivo</span>
   </div>
 
-  <div class="grid">
+  <div class="grid" id="aba-geral">
     <div class="card wide" style="grid-column:1/2">
       <div class="eyebrow">AGORA · <span id="relogio">—</span></div>
       <div class="headline" id="headline">Carregando…</div>
@@ -145,6 +145,36 @@
     </div>
   </div>
 
+  <div id="aba-setores" style="display:none">
+    <div class="card wide">
+      <div class="eyebrow">Inspetor (últimas linhas)</div>
+      <div class="muted" id="log-inspetor" style="white-space:pre-wrap;font-size:11px;line-height:1.6">—</div>
+    </div>
+    <div class="card wide" style="margin-top:10px">
+      <div class="eyebrow">Oi Jarvis (últimos pedidos)</div>
+      <div class="muted" id="log-oi-jarvis" style="white-space:pre-wrap;font-size:11px;line-height:1.6">—</div>
+    </div>
+  </div>
+
+  <div id="aba-rede" style="display:none">
+    <div class="card wide">
+      <div class="eyebrow">Rede</div>
+      <div class="row"><span>IP na Wi-Fi</span><span class="muted" id="rede-ip">—</span></div>
+      <div class="row"><span>PC do escritório</span><span class="muted" id="rede-pc">—</span></div>
+      <div class="row"><span>Doze (economia de bateria)</span><span class="muted">sempre desligado</span></div>
+    </div>
+  </div>
+
+  <div id="aba-dispositivo" style="display:none">
+    <div class="card wide">
+      <div class="eyebrow">Dispositivo</div>
+      <div class="row"><span>Modelo</span><span class="muted" id="disp-modelo">—</span></div>
+      <div class="row"><span>Android</span><span class="muted" id="disp-android">—</span></div>
+      <div class="row"><span>Armazenamento</span><span class="muted" id="disp-disco">—</span></div>
+      <div class="row"><span>Bateria</span><span class="muted" id="disp-bateria">—</span></div>
+    </div>
+  </div>
+
   <div class="foot">Nuvem do Jarvis · v2 · roda local no tablet</div>
 
 <script>
@@ -190,6 +220,7 @@ async function carregar(){
     document.getElementById('j-telegram').textContent = d.telegram_ativo ? 'rodando' : 'aguardando segredo';
     document.getElementById('j-inspetor').textContent = d.inspetor_ativo ? 'vigiando' : 'parado';
     document.getElementById('dot-inspetor').style.background = d.inspetor_ativo ? 'var(--ok)' : 'var(--bad)';
+    preencherAbas(d);
   }catch(e){}
   const ipsPC = ['192.168.0.8'];
   for (const ip of ipsPC){
@@ -202,6 +233,31 @@ async function carregar(){
   }
   document.getElementById('v-pc').textContent = 'desligado';
 }
+function mudarAba(nome, elemento){
+  for (const id of ['geral','setores','rede','dispositivo']){
+    document.getElementById('aba-'+id).style.display = (id === nome) ? '' : 'none';
+  }
+  const abas = elemento.parentElement.querySelectorAll('span');
+  abas.forEach(s => s.classList.remove('on'));
+  elemento.classList.add('on');
+}
+
+function preencherAbas(d){
+  const disp = d.dispositivo || {};
+  document.getElementById('disp-modelo').textContent = disp.modelo || '—';
+  document.getElementById('disp-android').textContent = disp.android ? ('Android ' + disp.android) : '—';
+  document.getElementById('disp-disco').textContent = (disp.disco_usado_gb!=null ? disp.disco_usado_gb+' GB usados de '+disp.disco_total_gb+' GB' : '—');
+  document.getElementById('disp-bateria').textContent = (d.bateria!=null ? d.bateria+'%' : '—');
+
+  const rede = d.rede_detalhe || {};
+  document.getElementById('rede-ip').textContent = rede.ip || '—';
+  document.getElementById('rede-pc').textContent = document.getElementById('v-pc').textContent;
+
+  const logs = d.logs || {};
+  document.getElementById('log-inspetor').textContent = (logs.inspetor||[]).join('\n') || '(sem registro ainda)';
+  document.getElementById('log-oi-jarvis').textContent = (logs.oi_jarvis||[]).join('\n') || '(ainda não usou o Oi Jarvis)';
+}
+
 async function volume(direcao){
   try{
     await fetch('http://127.0.0.1:8099/', {method:'POST', body: JSON.stringify({action: direcao > 0 ? 'volume_up' : 'volume_down'})});
