@@ -8,10 +8,23 @@ INICIO = time.time()
 
 
 def bateria():
+    # termux-battery-status dispara um processo-filho (termux-api) que conversa com o app
+    # Termux:API por socket; se o Python so mata o processo direto no timeout, esse filho
+    # fica orfao pendurado pra sempre esperando resposta (achado 11/11: dezenas acumulados,
+    # consumindo memoria no tablet que so tem 2GB). Por isso cria um grupo de processos
+    # novo e mata o grupo inteiro se estourar o tempo, nunca so o processo pai.
+    proc = None
     try:
-        out = subprocess.run(['termux-battery-status'], capture_output=True, text=True, timeout=8)
-        return json.loads(out.stdout).get('percentage')
+        proc = subprocess.Popen(['termux-battery-status'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                 text=True, start_new_session=True)
+        saida, _ = proc.communicate(timeout=8)
+        return json.loads(saida).get('percentage')
     except Exception:
+        if proc is not None:
+            try:
+                os.killpg(os.getpgid(proc.pid), 9)
+            except Exception:
+                pass
         try:
             with open('/sys/class/power_supply/battery/capacity') as f:
                 return int(f.read().strip())
