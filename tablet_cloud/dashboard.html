@@ -137,6 +137,10 @@
         <div class="row"><span><span class="dot" style="background:var(--ok)"></span>Python · Git</span><span class="muted" id="v-ver">—</span></div>
       </div>
       <a class="cta primary" href="#" id="btn-jarvis" onclick="falarComJarvis();return false;">🎙️ Falar com o Jarvis</a>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <a class="cta" href="#" style="flex:1;font-size:18px" onclick="volume(-1);return false;">🔉 −</a>
+        <a class="cta" href="#" style="flex:1;font-size:18px" onclick="volume(1);return false;">🔊 +</a>
+      </div>
       <a class="cta" href="#" onclick="location.reload();return false;">Atualizar</a>
     </div>
   </div>
@@ -197,6 +201,11 @@ async function carregar(){
     }catch(e){}
   }
   document.getElementById('v-pc').textContent = 'desligado';
+}
+async function volume(direcao){
+  try{
+    await fetch('http://127.0.0.1:8099/', {method:'POST', body: JSON.stringify({action: direcao > 0 ? 'volume_up' : 'volume_down'})});
+  }catch(e){}
 }
 async function falarComJarvis(){
   const btn = document.getElementById('btn-jarvis');
